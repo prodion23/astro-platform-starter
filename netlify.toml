@@ -1,3 +1,10 @@
 [[edge_functions]]
 function = "traceable"
 path = "/*"
+
+[build.environment]
+TA_SERVICE_NAME = "n1"
+TA_ENVIRONMENT_NAME = "test"
+
+[context.production.environment]
+TA_ENVIRONMENT_NAME = "prod-specific-test"
