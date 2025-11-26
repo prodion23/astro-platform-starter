@@ -5,11 +5,13 @@ const VERSION = '1.0.0';
 let CONFIG = {
     tpa_address: '', // TA_TPA_ADDRESS
     service_name: 'website', // TA_SERVICE_NAME
-    traceable_guid: '', // TA_GUID
+    traceable_guid: '', // TA_GUID **legacy, prefer TA_AGENT_TOKEN
+    // token: '' // TA_AGENT_TOKEN - preferred over TA_GUID can be used depending on auth mechanism
     environment_name: '', // TA_ENVIRONMENT_NAME
     capture_content_types: ['json', 'xml', 'grpc', 'x-www-form-urlencoded'], // TA_CAPTURE_CONTENT_TYPES
     max_size_bytes: 131072, // TA_MAX_SIZE_BYTES
     debug: false, // TA_DEBUG
+    timeout_ms: 500 // TA_TIMEOUT_MS
 };
 
 export function updateConfigFromEnv() {
@@ -28,6 +30,10 @@ export function updateConfigFromEnv() {
     override('max_size_bytes', 'TA_MAX_SIZE_BYTES', (v) => {
         const n = parseInt(v, 10);
         return Number.isNaN(n) ? CONFIG.max_size_bytes : n;
+    });
+    override('timeout_ms', 'TA_TIMEOUT_MS', (v) => {
+        const n = parseInt(v, 10)
+        return Number.isNaN(n) ? CONFIG.timeout_ms : n;
     });
 
     const parseJson = (v, expectArray = true) => {
@@ -73,7 +79,7 @@ export function createExtCapHeaders(start, end) {
         headers['x-traceable-guid'] = CONFIG.traceable_guid;
     }
 
-    const token = getEnvVar('TRACEABLE_AGENT_TOKEN');
+    const token = getEnvVar('TA_AGENT_TOKEN');
     if (token && token.length > 0) {
         headers['traceableai-agent-token'] = token;
     }
@@ -86,6 +92,7 @@ async function exportData(extCapData, start, end) {
     const options = {
         method: 'POST',
         headers,
+        signal: AbortSignal.timeout(CONFIG.timeout_ms),
         body: JSON.stringify(extCapData),
     };
     const url = CONFIG.tpa_address + '/ext_cap/v1/req_res_cap';
