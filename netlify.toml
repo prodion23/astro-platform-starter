@@ -1,7 +1,3 @@
-[[edge_functions]]
-function = "traceable"
-path = "/*"
-
 [build.environment]
 TA_SERVICE_NAME = "n1"
 TA_ENVIRONMENT_NAME = "test"
